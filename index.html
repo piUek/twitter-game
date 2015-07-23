@@ -1,11 +1,8 @@
 <!doctype html>
 <html>
   <head>
-<<<<<<< HEAD
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-=======
     <title>Twitter Game</title>
->>>>>>> origin/master
     <style>
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
@@ -17,13 +14,6 @@
     <title>Twitter - Game</title>
   </head>
   <body>
- <!--    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 335 276" fill="#3ba9ee" width="100%" height="200px" 
-        preserveAspectRatio="xMinYMin meet">
-      <path d="m302 70a195 195 0 0 1 -299 175 142 142 0 0 0 97 -30 70 70 0 0 1 -58 -47 70 70 0 0 0 31 -2 70 70 0 0 1 -57 -66 70 70 0 0 0 28 5 70 70 0 0 1 -18 -90 195 195 0 0 0 141 72 67 67 0 0 1 116 -62 117 117 0 0 0 43 -17 65 65 0 0 1 -31 38 117 117 0 0 0 39 -11 65 65 0 0 1 -32 35"/>
-    </svg> -->
-    <div>
-      <h1 id='counter'>0</h1>
-    </div>
     <div id="chart" style='fill:white;'>
     </div>
 
@@ -37,14 +27,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
     <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
     <script>
-      var counter = 0;
-      var w = 800,
-          h = 600,
+      var w = 1280,
+          h = 840,
           color = d3.scale.category10();
 
       var force = d3.layout.force()
-          .gravity(0)
-          .charge(-10)
+          .gravity(.01)
+          .charge(-3)
           .size([w, h]);
 
       var nodes = force.nodes(),
@@ -64,8 +53,8 @@
 
       svg.selectAll("circle")
           .data(nodes)
-        .enter().append("svg:circle")
-          .attr("r", 12)
+          .enter().append("svg:circle")
+          .attr("r", 10)
           .attr("cx", function(d) { return d.x; })
           .attr("cy", function(d) { return d.y; })
           .style("fill", fill)
@@ -77,6 +66,7 @@
           var center = nodes[node.type];
           node.x += (center.x - node.x) * k;
           node.y += (center.y - node.y) * k;
+          node.r = node.r * .1 * k;
         });
 
         svg.selectAll("circle")
@@ -84,9 +74,8 @@
             .attr("cy", function(d) { return d.y; });
       });
 
-      var p0;
-
       function appendNode() {
+        var p0;
         var p1 = [w/2, h/2],
             node = {type: Math.random() * 3 | 0, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
         p0 = p1;
@@ -95,13 +84,13 @@
             .data([node])
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
-            .attr("r", 4.5)
+            .attr("r", Math.random() * 16 + 4)
             .style("fill", fill)
-          // .transition()
-          //   .delay(3000)
-          //   .attr("r", 1e-6)
-          //   .each("end", function() { nodes.splice(3, 1); })
-          //   .remove();
+          .transition()
+            .delay(200)
+            .attr("r", 4.5)
+            // .each("end", function() { nodes.splice(3, 1); })
+            // .remove();
 
         nodes.push(node);
         force.start();
@@ -109,30 +98,6 @@
 
       function fill(d) {
         return color(d.type);
-      }   
-
-      function collide(node) {
-        var r = node.radius + 16,
-            nx1 = node.x - r,
-            nx2 = node.x + r,
-            ny1 = node.y - r,
-            ny2 = node.y + r;
-        return function(quad, x1, y1, x2, y2) {
-          if (quad.point && (quad.point !== node)) {
-            var x = node.x - quad.point.x,
-                y = node.y - quad.point.y,
-                l = Math.sqrt(x * x + y * y),
-                r = node.radius + quad.point.radius;
-            if (l < r) {
-              l = (l - r) / l * .5;
-              node.x -= x *= l;
-              node.y -= y *= l;
-              quad.point.x += x;
-              quad.point.y += y;
-            }
-          }
-          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-        };
       }
 
       var socket = io();
@@ -148,10 +113,9 @@
         appendNode();
         appendNode();
         appendNode();
-        counter += 4;
-        $('#counter').html(counter);
+        // $('#counter').html(counter);
 
-        // $('#messages').append($('<li>').text(msg));
+        // $('#messages').html('<li>' + text(msg) + '</li>');
       });
 
     </script>
