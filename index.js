@@ -1,7 +1,7 @@
 // Wstępna wersja bazująca na stream.io chacie i przykładach z twitter-stream-channels
 // wersje testowe bazuja na strumieniu z pliku
-
-var app = require('express')();
+var express = require('express')
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
@@ -67,7 +67,7 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 }); // route do index.html
 
-app.use('/static', express.static('public')); //serwowanie plików statycznych
+app.use('/static', express.static('static')); //serwowanie plików statycznych
 
 http.listen(3001, function(){
   console.log('> status : nasłuchuje na porcie *:3001');

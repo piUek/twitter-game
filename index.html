@@ -3,121 +3,42 @@
   <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <title>Twitter Game</title>
-    <style>
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
-    <title>Twitter - Game</title>
   </head>
   <body>
-    <div id="chart" style='fill:white;'>
-    </div>
+    <style>
+      .form-control {width: 400px;
+                    display: inline;}
+      a {margin-left: 10px;}
+      a:hover {text-decoration: none;}
+    </style>
+    <div id="chart" style='fill:white;'></div>
 
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button class='btn btn-success'>Send</button>
-    </form>
+    <div class="modal fade" id="playerSetup" tabindex="-1" role="dialog" aria-labelledby="playerSetup" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
+            <h4 class="modal-title" id="modalLabel">Setup</h4>
+            <button class="add_field_button btn btn-success">Add More Players</button>
+          </div>
+          <div class="modal-body">
+            <form action="" class='form' id='players'>
+              <div class="input_fields_wrap">
+                <div class="form-group">
+                  <input type="text" class='form-control' name="mytext[]" placeholder="player1">
+                </div>
+              </div>
+              <button class='btn btn-success' id='setupGame'>Setup Game</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
     <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
-    <script>
-      var w = 1280,
-          h = 840,
-          color = d3.scale.category10();
-
-      var force = d3.layout.force()
-          .gravity(.01)
-          .charge(-3)
-          .size([w, h]);
-
-      var nodes = force.nodes(),
-          a = {type: 0, x: 3 * w / 6, y: 2 * h / 6, fixed: true},
-          b = {type: 1, x: 4 * w / 6, y: 4 * h / 6, fixed: true},
-          c = {type: 2, x: 2 * w / 6, y: 4 * h / 6, fixed: true};
-
-      nodes.push(a, b, c);
-
-      var svg = d3.select("#chart").append("svg:svg")
-          .attr("width", w)
-          .attr("height", h);
-
-      svg.append("svg:rect")
-          .attr("width", w)
-          .attr("height", h);
-
-      svg.selectAll("circle")
-          .data(nodes)
-          .enter().append("svg:circle")
-          .attr("r", 10)
-          .attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; })
-          .style("fill", fill)
-          .call(force.drag);
-
-      force.on("tick", function(e) {
-        var k = e.alpha * .1;
-        nodes.forEach(function(node) {
-          var center = nodes[node.type];
-          node.x += (center.x - node.x) * k;
-          node.y += (center.y - node.y) * k;
-          node.r = node.r * .1 * k;
-        });
-
-        svg.selectAll("circle")
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
-      });
-
-      function appendNode() {
-        var p0;
-        var p1 = [w/2, h/2],
-            node = {type: Math.random() * 3 | 0, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
-        p0 = p1;
-
-        svg.append("svg:circle")
-            .data([node])
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
-            .attr("r", Math.random() * 16 + 4)
-            .style("fill", fill)
-          .transition()
-            .delay(200)
-            .attr("r", 4.5)
-            // .each("end", function() { nodes.splice(3, 1); })
-            // .remove();
-
-        nodes.push(node);
-        force.start();
-      };
-
-      function fill(d) {
-        return color(d.type);
-      }
-
-      var socket = io();
-
-      $('form').submit(function(){
-        socket.emit('twit message', $('#m').val());
-        $('#m').val('');
-        return false;
-      });
-
-      socket.on('twit message', function(msg){
-        appendNode();
-        appendNode();
-        appendNode();
-        appendNode();
-        // $('#counter').html(counter);
-
-        // $('#messages').html('<li>' + text(msg) + '</li>');
-      });
-
-    </script>
+    <script src="static/js/main.js"></script>
   </body>
 </html>
