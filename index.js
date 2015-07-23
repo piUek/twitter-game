@@ -54,9 +54,8 @@ function startStream(keywords) {
   stream.on('channels',function(tweet){
     if (Object.keys(tweet.$channels).length > 0) { // sprawdzam, czy tweet pasuje do ktoregos z kanalow
       var scorersArray = Object.keys(tweet.$channels); // liczba graczy, ktorzy uzyskali punkt za danego tweeta
-      console.log(scorersArray);
       console.log(tweet.text);
-      io.emit('twit message', scorersArray);
+      io.emit('scorers', scorersArray);
     };
   });
 

@@ -57,8 +57,8 @@ $(document).ready(function() {
 
 });
 
-var w = 1280,
-    h = 840,
+var w = 800,
+    h = 600,
     color = d3.scale.category10();
 
 var svg = d3.select("#chart").append("svg:svg")
@@ -72,8 +72,12 @@ svg.append("svg:rect")
 var canvas;
 var socket = io();
 
-socket.on('twit message', function(msg){
-  appendNode(svg, canvas['nodes'], canvas['force'], msg);
+// sluchamy kanalu scorers i dodajemy punkty graczom
+socket.on('scorers', function(msg){
+  Array.prototype.forEach.call(msg, function(player)
+    {
+      appendNode(svg, canvas['nodes'], canvas['force'], player);
+    });
   });
 
 function draw(svg, playersCount) {
@@ -87,7 +91,7 @@ function draw(svg, playersCount) {
 
   for (var i = 0; i < playersCount; i++)
   {
-    newBase = {type: i, x: 3 * w / 6 + i*50, y: 2 * h / 6 + i*50, fixed: true}
+    newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*70, fixed: true}
     nodes.push(newBase);
   }
 
@@ -116,8 +120,7 @@ function draw(svg, playersCount) {
   return {'nodes': nodes, 'force' : force};
 }
 
-function appendNode(svg, nodes, force) {
-  var playerIdx = 1;
+function appendNode(svg, nodes, force, playerIdx) {
   var p0;
   var p1 = [w/2, h/2],
       node = {type: playerIdx, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
