@@ -12,7 +12,7 @@ $(document).ready(function() {
           x++; //text box increment
           $(wrapper).append('<div class="form-group">' + 
             '<input type="text" class="form-control" ' + 
-            'name="mytext[]" placeholder="player' + x +
+            'placeholder="player' + x +
             '"/><a href="#"' + 
             'class="remove_field">Remove</a></div>'); //add input box
       }
@@ -26,21 +26,33 @@ $(document).ready(function() {
   $('#chart').hide();
 
   $('#setupGame').click(function(e) {
-    var playerKeys = [];
+    e.preventDefault();
+    var isReady = true; // if all the fields went through validation
+    var playerKeys = []; // array for players
+
+    $( ".form-group" ).removeClass( "has-success has-error") // validator display reset
+
     $('.form-control').each(function (i) {
       key = $(this).val();
+
       if (key == "") {
-        $(this).attr('placeholder', 'Please fill this field');
+        isReady = false;
+        $(this).attr('placeholder', 'Please fill this field'); 
         $(this).parent().addClass('has-error');
-        // alert("Please fill the keys for all players!");
-        return 0;
       }
       else {
         playerKeys.push(key);
         $(this).parent().addClass('has-success');
         }
     });
-    console.log(playerKeys);
+
+    if (isReady) {
+      $('#playerSetup').modal('hide');
+      $('#chart').show();
+      playersCount = playerKeys.length;
+      canvas = draw(svg, playersCount);
+      socket.emit('twit message', playerKeys);
+    };
   });
 
 });
@@ -57,31 +69,27 @@ svg.append("svg:rect")
     .attr("width", w)
     .attr("height", h);
 
-var canvas = draw(svg);
+var canvas;
 var socket = io();
 
-$('form').submit(function(){
-  socket.emit('twit message', $('#m').val());
-  $('#m').val('');
-  return false;
-});
-
 socket.on('twit message', function(msg){
-  appendNode(svg, canvas['nodes'], canvas['force']);
-});
+  appendNode(svg, canvas['nodes'], canvas['force'], msg);
+  });
 
-function draw(svg) {
+function draw(svg, playersCount) {
   var force = d3.layout.force()
       .gravity(0)
       .charge(-3)
       .size([w, h]);
 
-  var nodes = force.nodes(),
-      a = {type: 0, x: 3 * w / 6, y: 2 * h / 6, fixed: true},
-      b = {type: 1, x: 4 * w / 6, y: 4 * h / 6, fixed: true},
-      c = {type: 2, x: 2 * w / 6, y: 4 * h / 6, fixed: true};
+  var nodes = force.nodes();
+  var playerBases = [];
 
-  nodes.push(a, b, c);
+  for (var i = 0; i < playersCount; i++)
+  {
+    newBase = {type: i, x: 3 * w / 6 + i*50, y: 2 * h / 6 + i*50, fixed: true}
+    nodes.push(newBase);
+  }
 
   svg.selectAll("circle")
       .data(nodes)
@@ -109,9 +117,10 @@ function draw(svg) {
 }
 
 function appendNode(svg, nodes, force) {
+  var playerIdx = 1;
   var p0;
   var p1 = [w/2, h/2],
-      node = {type: Math.random() * 3 | 0, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
+      node = {type: playerIdx, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
   p0 = p1;
 
   svg.append("svg:circle")

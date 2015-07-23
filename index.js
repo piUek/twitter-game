@@ -6,7 +6,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 // funkcja obsługująca komunikacje z twitterem
-function startStream(keyword) {
+function startStream(keywords) {
   var TwitterStreamChannels = require('twitter-stream-channels').getMockedClass();
   var credentials = require('./my.twitter.credentials.json');
   var tweetsMock = require('./node_modules/twitter-stream-channels/mocks/data/tweets.json');
@@ -17,13 +17,18 @@ function startStream(keyword) {
   var client = new TwitterStreamChannels(credentials); // potrzebne później przy łączeniu do twitter stream api
   var connected = false;
 
-  var channels = {
-      "gracz1" : [keyword]}; // docelowo budowana w zależności od liczby graczy
+  var channels = {}
+
+  for (var i=0; i < keywords.length; i++) {
+    channels[i] = keywords[i];
+  }
+
+  console.log(channels);
 
   var stream = client.streamChannels({track:channels}); // inicjalizacja strumienia
 
 // komunikacja związana z połączeniem:
-  io.emit('twit message', 'Zaczynam nasłuchiwać dla słowa: ' + keyword); 
+  io.emit('twit message', 'Zaczynam nasłuchiwać dla słów: ' + keywords); 
 
   stream.on('connect', function() {
     console.log('> twitter : próbuje połączyć z twitterem');
@@ -45,19 +50,21 @@ function startStream(keyword) {
     console.log('> twitter : czekam na ponowne połączenie '+connectInterval+'ms');
   });
 
-
 // obsługa trafionych wyrazów
-  stream.on('channels/gracz1',function(tweet){
-    // console.log('>gracz',tweet.text);
-    io.emit('twit message', 'gracz1: ' + tweet.text);
+  stream.on('channels',function(tweet){
+    if (Object.keys(tweet.$channels).length > 0) { // sprawdzam, czy tweet pasuje do ktoregos z kanalow
+      var scorersArray = Object.keys(tweet.$channels); // liczba graczy, ktorzy uzyskali punkt za danego tweeta
+      console.log(scorersArray);
+      console.log(tweet.text);
+      io.emit('twit message', scorersArray);
+    };
   });
-
 
 // po określonym czasie zamykamy stream - absolutne maximum to 15m, ale na potrzeby gry to max 1 minuta
   setTimeout(function() {
     stream.stop();
     console.log('> twitter : strumień zatrzymany');
-    io.emit('twit message', 'Przestałem nasłuchiwać dla słowa: ' + keyword);
+    io.emit('twit message', 'Przestałem nasłuchiwać dla słów: ' + keywords);
   }, timeout);
 };
 
@@ -84,8 +91,8 @@ io.on('connection', function(socket){
 
 // funkcja, która wyzwala startStream po otrzymaniu słów kluczowych
 io.on('connection', function(socket){
-  socket.on('twit message', function(keyword){
-    console.log('> status : wyszukuje słów kluczowych: ' + keyword);
-    startStream(keyword);
+  socket.on('twit message', function(keywords){
+    console.log('> status : wyszukuje słów kluczowych: ' + keywords);
+    startStream(keywords);
   });
 });
