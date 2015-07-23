@@ -1,7 +1,7 @@
 {
-  "name": "lp-game",
-  "version": "0.0.2",
-  "description": "Game for Linux Polska",
+  "name": "twitter-game",
+  "version": "0.0.3",
+  "description": "Twitter Game",
   "main": "index.js",
   "author": "Pawel Pilkowski",
   "license": "ISC",

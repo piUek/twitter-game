@@ -48,8 +48,8 @@ function startStream(keyword) {
 
 // obsługa trafionych wyrazów
   stream.on('channels/gracz1',function(tweet){
-      console.log('>gracz',tweet.text);
-      io.emit('twit message', '>gracz1: ' + tweet.text);
+    // console.log('>gracz',tweet.text);
+    io.emit('twit message', 'gracz1: ' + tweet.text);
   });
 
 
@@ -65,25 +65,27 @@ function startStream(keyword) {
 // konfiguracja serwera http
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
-});
+}); // route do index.html
+
+app.use('/static', express.static('public')); //serwowanie plików statycznych
 
 http.listen(3001, function(){
-  console.log('nasłuchuje na porcie *:3001');
-});
+  console.log('> status : nasłuchuje na porcie *:3001');
+}); // start serwera
 
 
 // komunikaty z socketów o połączeniu/rozłączeniu użytkownika
 io.on('connection', function(socket){
-  console.log('użytkownik połączony');
+  console.log('> status : użytkownik połączony');
   socket.on('disconnect', function(){
-    console.log('użytkownik rozłączony');
+    console.log('> status : użytkownik rozłączony');
   });
 });
 
 // funkcja, która wyzwala startStream po otrzymaniu słów kluczowych
 io.on('connection', function(socket){
   socket.on('twit message', function(keyword){
-    console.log('słowa kluczowe: ' + keyword);
+    console.log('> status : wyszukuje słów kluczowych: ' + keyword);
     startStream(keyword);
   });
 });
