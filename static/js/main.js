@@ -17,36 +17,17 @@ $(document).ready(function() {
 
   $('#startGame').click(function(e) {
     e.preventDefault();
-    var isReady = true; // flaga walidacji
     var playerKeys = []; // array graczy
+    var playersCount = 0;
 
-    $( ".form-group" ).removeClass( "has-success has-error") // resetuje nadane css klasy przez walidator
-
-    $('.form-control').each(function (i) {
-      var key = $(this).val();
-
-      if (key == "") {
-        isReady = false;
-        $(this).attr('placeholder', 'Please fill this field'); 
-        $(this).parent().addClass('has-error');
-      }
-      else {
-        playerKeys.push(key);
-        $(this).parent().addClass('has-success');
-        }
-    });
-
-    if (isReady) {
+    if (validateFields(playerKeys)) {
+      playersCount = playerKeys.length;
       $('#playerSetup').modal('hide');
       $('#chart').show();
-      var playersCount = playerKeys.length;
+
       canvas = draw(svg, playersCount, w, h);
-
-      socket.emit('start stream', playerKeys); // wysylamy klucze do backendu
-
-      addCounters(svg, playerKeys, w, h); // dodajemy liczniki
-      
-      handleIncStream(socket, svg, canvas, w, h); // sluchamy kanalu scorers i dodajemy punkty graczom
+      addCounters(svg, playerKeys, w, h); // dodajemy liczniki      
+      handleIncStream(socket, svg, canvas, w, h, playerKeys); // sluchamy kanalu scorers i dodajemy punkty graczom
     };
   });
 
@@ -60,9 +41,9 @@ function draw(svg, playersCount, w, h) {
         .size([w, h]),
       nodes = force.nodes(),
       playerBases = [],
-      i;
+      i = 0;
 
-  for (var i = 0; i < playersCount; i++)
+  for (i = 0; i < playersCount; i++)
   {
     var newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*150, fixed: true}
     nodes.push(newBase);
@@ -140,7 +121,8 @@ function addCounters(svg, playerKeys, w, h) {
                  .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
 }
 
-function handleIncStream(socket, svg, canvas, w, h) {
+function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
+  socket.emit('start stream', playerKeys); // wysylamy klucze do backendu
   socket.on('scorers', function(msg){
     Array.prototype.forEach.call(msg, function(player)
       {
@@ -163,6 +145,26 @@ function appendSvg(w, h) {
   return svg;
 }
 
+function validateFields(playerKeys) {
+  var isReady = true;
+  $('.form-group').removeClass( "has-success has-error") // resetuje nadane przez walidator klasy css
+
+  $('.form-control').each(function (i) {
+    var key = $(this).val();
+
+    if (key == "") {
+      isReady = false;
+      $(this).attr('placeholder', 'Please fill this field'); 
+      $(this).parent().addClass('has-error');
+    }
+    else {
+      playerKeys.push(key);
+      $(this).parent().addClass('has-success');
+      }
+  });
+  return isReady;
+}
+
 function handleNewPlayerButtons() {
   var maxPlayers     = 6; // max no of players
   var wrapper        = $(".input_fields_wrap"); // opakowanie pol z inputem (ulatwia pozniejsze usuwanie)
@@ -170,19 +172,19 @@ function handleNewPlayerButtons() {
   
   var x = 1; //initial player count
 
-  $(addButton).click(function(e){ //on add input button click
+  $(addButton).click(function(e){ //obsluga guzika dodaj graczy
       e.preventDefault();
       if(x < maxPlayers){ 
-          x++; //text box increment
+          x++; // pilnuje liczby zeby nie przekroczyc maksymalnej liczby graczy
           $(wrapper).append('<div class="form-group">' + 
             '<input type="text" class="form-control" ' + 
             'placeholder="player' + x +
             '"/><a href="#"' + 
-            'class="remove_field">Remove</a></div>'); //add input box
+            'class="remove_field">Remove</a></div>'); // dodaje diva z inputem na klucze
       }
   });
   
-  $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
+  $(wrapper).on("click",".remove_field", function(e){ // usuwanie divow z inputem
       e.preventDefault(); $(this).parent('div').remove(); x--;
   })
 };
