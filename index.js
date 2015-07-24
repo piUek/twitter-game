@@ -7,10 +7,10 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 
-// konfiguracja serwera http
+// konfiguracja serwera http + route do index.html
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
-}); // route do index.html
+}); 
 
 //serwowanie plików statycznych
 app.use('/static', express.static('static')); 
@@ -38,15 +38,15 @@ function startStream(keywords) {
   var client = new TwitterStreamChannels(credentials); // potrzebne później przy łączeniu do twitter stream api
 
   var channels = {}
-  for (var i=0; i < keywords.length; i++) {
+  var keyCount = keywords.length;
+  for (var i=0; i < keyCount; i++) {
     channels[i] = keywords[i];
   }
 
   var stream = client.streamChannels({track:channels}); // inicjalizacja strumienia
 
 // komunikacja związana z połączeniem:
-  io.emit('twit message', 'Zaczynam nasłuchiwać dla słów: ' + keywords); 
-  handleTwitterConnectionStatus(stream);
+  handleTwitterConnectionStatus(stream, keywords);
 
 // obsługa trafionych wyrazów
   handleHits(stream);
@@ -75,7 +75,7 @@ function listenForStartEvent() {
   });
 };
 
-function handleTwitterConnectionStatus(stream)
+function handleTwitterConnectionStatus(stream, keywords)
 {
     var connected = false;
 
