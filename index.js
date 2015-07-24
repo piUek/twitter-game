@@ -1,9 +1,40 @@
 // Wstępna wersja bazująca na stream.io chacie i przykładach z twitter-stream-channels
 // wersje testowe bazuja na strumieniu z pliku
+"use strict";
 var express = require('express')
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+
+
+// konfiguracja serwera http
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/index.html');
+}); // route do index.html
+
+//serwowanie plików statycznych
+app.use('/static', express.static('static')); 
+
+// start serwera
+http.listen(3001, function(){
+  console.log('> status : nasłuchuje na porcie *:3001');
+}); 
+
+// komunikaty z socketów o połączeniu/rozłączeniu użytkownika
+io.on('connection', function(socket){
+  console.log('> status : użytkownik połączony');
+  socket.on('disconnect', function(){
+    console.log('> status : użytkownik rozłączony');
+  });
+});
+
+// funkcja, która wyzwala startStream po otrzymaniu słów kluczowych
+io.on('connection', function(socket){
+  socket.on('start stream', function(keywords){
+    console.log('> status : wyszukuje słów kluczowych: ' + keywords);
+    startStream(keywords);
+  });
+});
 
 // funkcja obsługująca komunikacje z twitterem
 function startStream(keywords) {
@@ -22,8 +53,6 @@ function startStream(keywords) {
   for (var i=0; i < keywords.length; i++) {
     channels[i] = keywords[i];
   }
-
-  console.log(channels);
 
   var stream = client.streamChannels({track:channels}); // inicjalizacja strumienia
 
@@ -66,32 +95,3 @@ function startStream(keywords) {
     io.emit('twit message', 'Przestałem nasłuchiwać dla słów: ' + keywords);
   }, timeout);
 };
-
-
-// konfiguracja serwera http
-app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
-}); // route do index.html
-
-app.use('/static', express.static('static')); //serwowanie plików statycznych
-
-http.listen(3001, function(){
-  console.log('> status : nasłuchuje na porcie *:3001');
-}); // start serwera
-
-
-// komunikaty z socketów o połączeniu/rozłączeniu użytkownika
-io.on('connection', function(socket){
-  console.log('> status : użytkownik połączony');
-  socket.on('disconnect', function(){
-    console.log('> status : użytkownik rozłączony');
-  });
-});
-
-// funkcja, która wyzwala startStream po otrzymaniu słów kluczowych
-io.on('connection', function(socket){
-  socket.on('twit message', function(keywords){
-    console.log('> status : wyszukuje słów kluczowych: ' + keywords);
-    startStream(keywords);
-  });
-});

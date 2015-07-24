@@ -1,14 +1,15 @@
-
+"use strict";
 $(document).ready(function() {
   // game setup:
-  var max_players     = 6; // max no of players
+  var maxPlayers     = 6; // max no of players
   var wrapper         = $(".input_fields_wrap"); //Fields wrapper
-  var add_button      = $(".add_field_button"); //Add button ID
+  var addButton      = $(".add_player_button"); //Add button ID
   
-  var x = 1; //initlal player count
-  $(add_button).click(function(e){ //on add input button click
+  var x = 1; //initial player count
+  
+  $(addButton).click(function(e){ //on add input button click
       e.preventDefault();
-      if(x < max_players){ 
+      if(x < maxPlayers){ 
           x++; //text box increment
           $(wrapper).append('<div class="form-group">' + 
             '<input type="text" class="form-control" ' + 
@@ -22,7 +23,7 @@ $(document).ready(function() {
       e.preventDefault(); $(this).parent('div').remove(); x--;
   })
 
-  $('#playerSetup').modal({  backdrop: 'static', keyboard: false});
+  $('#playerSetup').modal({ backdrop: 'static', keyboard: false});
   $('#chart').hide();
 
   $('#setupGame').click(function(e) {
@@ -33,7 +34,7 @@ $(document).ready(function() {
     $( ".form-group" ).removeClass( "has-success has-error") // validator display reset
 
     $('.form-control').each(function (i) {
-      key = $(this).val();
+      var key = $(this).val();
 
       if (key == "") {
         isReady = false;
@@ -49,16 +50,34 @@ $(document).ready(function() {
     if (isReady) {
       $('#playerSetup').modal('hide');
       $('#chart').show();
-      playersCount = playerKeys.length;
+      var playersCount = playerKeys.length;
       canvas = draw(svg, playersCount);
-      socket.emit('twit message', playerKeys);
+      socket.emit('start stream', playerKeys);
+
+      // Dodajemy text do svg
+      var text = svg.selectAll("text")
+                            .data(playerKeys)
+                            .enter()
+                            .append("text");
+
+      // Wypełniamy trescia
+      var textLabels = text
+                     .attr("x", w - 200)
+                     .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
+                     // .text( function (d) {return 'Player' + (playerKeys.indexOf(d) + 1 + ' ' + d + ': ')} )
+                     // .text( function (d) { return d + ': 0'} )
+                     .text( function (d) {return '0'} )
+                     .attr("font-family", "sans-serif")
+                     .attr("font-size", "20px")
+                     .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
+                     .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
     };
   });
 
 });
 
-var w = 800,
-    h = 600,
+var w = $( window ).width(),
+    h = $( window ).height(),
     color = d3.scale.category10();
 
 var svg = d3.select("#chart").append("svg:svg")
@@ -77,6 +96,9 @@ socket.on('scorers', function(msg){
   Array.prototype.forEach.call(msg, function(player)
     {
       appendNode(svg, canvas['nodes'], canvas['force'], player);
+      var counter = d3.select('#playerCounter' + player);
+      var counterVal = parseInt(counter.html()) + 1;
+      counter.html(counterVal);
     });
   });
 
@@ -91,7 +113,7 @@ function draw(svg, playersCount) {
 
   for (var i = 0; i < playersCount; i++)
   {
-    newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*70, fixed: true}
+    var newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*70, fixed: true}
     nodes.push(newBase);
   }
 
@@ -117,6 +139,7 @@ function draw(svg, playersCount) {
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
   });
+
   return {'nodes': nodes, 'force' : force};
 }
 
