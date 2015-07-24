@@ -1,26 +1,16 @@
 "use strict";
-  var w = $( window ).width(),
-      h = $( window ).height(),
-      color = d3.scale.category10(),
-      socket = io();
+var color = d3.scale.category10();
 
 $(document).ready(function() {
   // game setup:
-  var canvas = {};
+  var w = $( window ).width(),
+      h = $( window ).height(),
+      socket = io(),
+      canvas = {},
+      svg = {};
+
   handleNewPlayerButtons();
-
-  var svg = appendSvg();
-
-  // sluchamy kanalu scorers i dodajemy punkty graczom
-  socket.on('scorers', function(msg){
-    Array.prototype.forEach.call(msg, function(player)
-      {
-        appendNode(svg, canvas['nodes'], canvas['force'], player);
-        var counter = d3.select('#playerCounter' + player);
-        var counterVal = parseInt(counter.html()) + 1;
-        counter.html(counterVal);
-      });
-    });
+  svg = appendSvg(w, h);
 
   $('#playerSetup').modal({ backdrop: 'static', keyboard: false});
   $('#chart').hide();
@@ -51,9 +41,12 @@ $(document).ready(function() {
       $('#chart').show();
       var playersCount = playerKeys.length;
       canvas = draw(svg, playersCount, w, h);
-      socket.emit('start stream', playerKeys);
 
-      addCounters(svg, playerKeys);
+      socket.emit('start stream', playerKeys); // wysylamy klucze do backendu
+
+      addCounters(svg, playerKeys, w, h); // dodajemy liczniki
+      
+      handleIncStream(socket, svg, canvas, w, h); // sluchamy kanalu scorers i dodajemy punkty graczom
     };
   });
 
@@ -62,12 +55,12 @@ $(document).ready(function() {
 
 function draw(svg, playersCount, w, h) {
   var force = d3.layout.force()
-      .gravity(0)
-      .charge(-3)
-      .size([w, h]);
-
-  var nodes = force.nodes();
-  var playerBases = [];
+        .gravity(0)
+        .charge(-3)
+        .size([w, h]),
+      nodes = force.nodes(),
+      playerBases = [],
+      i;
 
   for (var i = 0; i < playersCount; i++)
   {
@@ -101,7 +94,7 @@ function draw(svg, playersCount, w, h) {
   return {'nodes': nodes, 'force' : force};
 }
 
-function appendNode(svg, nodes, force, playerIdx) {
+function appendNode(svg, nodes, force, playerIdx, w, h) {
   var p0;
   var p1 = [w/2, h/2],
       node = {type: playerIdx, x: p1[0], y: p1[1], px: (p0 || (p0 = p1))[0], py: p0[1]};
@@ -127,7 +120,7 @@ function fill(d) {
   return color(d.type);
 }
 
-function addCounters(svg, playerKeys) {
+function addCounters(svg, playerKeys, w, h) {
   // Dodajemy text do svg
   var text = svg.selectAll("text")
                         .data(playerKeys)
@@ -147,7 +140,19 @@ function addCounters(svg, playerKeys) {
                  .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
 }
 
-function appendSvg() {
+function handleIncStream(socket, svg, canvas, w, h) {
+  socket.on('scorers', function(msg){
+    Array.prototype.forEach.call(msg, function(player)
+      {
+        appendNode(svg, canvas['nodes'], canvas['force'], player, w, h);
+        var counter = d3.select('#playerCounter' + player);
+        var counterVal = parseInt(counter.html()) + 1;
+        counter.html(counterVal);
+      });
+    });
+  };
+
+function appendSvg(w, h) {
   var svg = d3.select("#chart").append("svg:svg")
       .attr("width", w)
       .attr("height", h);
@@ -160,8 +165,8 @@ function appendSvg() {
 
 function handleNewPlayerButtons() {
   var maxPlayers     = 6; // max no of players
-  var wrapper         = $(".input_fields_wrap"); //Fields wrapper
-  var addButton      = $(".add_player_button"); //Add button ID
+  var wrapper        = $(".input_fields_wrap"); // opakowanie pol z inputem (ulatwia pozniejsze usuwanie)
+  var addButton      = $("#add_player_button"); // uchwyt do przycisku dodawania nowych graczy
   
   var x = 1; //initial player count
 

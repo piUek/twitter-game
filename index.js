@@ -5,7 +5,7 @@ var express = require('express')
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
+var i;
 
 // konfiguracja serwera http + route do index.html
 app.get('/', function(req, res){
@@ -39,7 +39,7 @@ function startStream(keywords) {
 
   var channels = {}
   var keyCount = keywords.length;
-  for (var i=0; i < keyCount; i++) {
+  for (i=0; i < keyCount; i++) {
     channels[i] = keywords[i];
   }
 
