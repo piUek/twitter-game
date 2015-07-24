@@ -6,7 +6,7 @@ $(document).ready(function() {
   var addButton      = $(".add_player_button"); //Add button ID
   
   var x = 1; //initial player count
-  
+
   $(addButton).click(function(e){ //on add input button click
       e.preventDefault();
       if(x < maxPlayers){ 
@@ -113,7 +113,7 @@ function draw(svg, playersCount) {
 
   for (var i = 0; i < playersCount; i++)
   {
-    var newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*70, fixed: true}
+    var newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*150, fixed: true}
     nodes.push(newBase);
   }
 
