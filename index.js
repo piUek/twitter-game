@@ -104,7 +104,7 @@ function handleTwitterConnectionStatus(stream, keywords)
     stream.on('channels',function(tweet){
       if (Object.keys(tweet.$channels).length > 0) { // sprawdzam, czy tweet pasuje do ktoregos z kanalow
         var scorersArray = Object.keys(tweet.$channels); // liczba graczy, ktorzy uzyskali punkt za danego tweeta
-        console.log(tweet.text);
+//         console.log(tweet.text);
         io.emit('scorers', scorersArray);
       };
     });

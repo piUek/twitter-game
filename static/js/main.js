@@ -33,6 +33,18 @@ $(document).ready(function() {
 
 });
 
+function getX(degrees, r, x) {
+  return x + r  * Math.cos(getRad(degrees));
+    }
+
+function getY(degrees, r, y) {
+  return y + r * Math.sin(getRad(degrees));
+  }
+
+function getRad(degrees) {
+  var adjust = Math.PI / 2;
+  return (degrees * Math.PI / 180) - adjust;
+  }
 
 function draw(svg, playersCount, w, h) {
   var force = d3.layout.force()
@@ -40,13 +52,15 @@ function draw(svg, playersCount, w, h) {
         .charge(-3)
         .size([w, h]),
       nodes = force.nodes(),
-      playerBases = [],
-      i = 0;
+      i = 0,
+      newPlayerBase = {},
+      degrees = 360 / playersCount || 0,
+      r = 300;
 
   for (i = 0; i < playersCount; i++)
   {
-    var newBase = {type: i, x: 3 * w / 6 + i*70, y: 2 * h / 6 + i*150, fixed: true}
-    nodes.push(newBase);
+    newPlayerBase = {type: i, x: getX(degrees * i, r, w/2), y: getY(degrees * i, r, h/2), fixed: true};
+    nodes.push(newPlayerBase);
   }
 
   svg.selectAll("circle")
@@ -114,9 +128,8 @@ function addCounters(svg, playerKeys, w, h) {
                  .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
                  // .text( function (d) {return 'Player' + (playerKeys.indexOf(d) + 1 + ' ' + d + ': ')} )
                  // .text( function (d) { return d + ': 0'} )
-                 .text( function (d) {return '0'} )
-                 .attr("font-family", "sans-serif")
-                 .attr("font-size", "20px")
+                 .text( 0 )
+                 .attr("font-size", "24px")
                  .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
                  .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
 }
@@ -126,9 +139,11 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
   socket.on('scorers', function(msg){
     Array.prototype.forEach.call(msg, function(player)
       {
+        var counter = {},
+            counterVal = 0;
         appendNode(svg, canvas['nodes'], canvas['force'], player, w, h);
-        var counter = d3.select('#playerCounter' + player);
-        var counterVal = parseInt(counter.html()) + 1;
+        counter = d3.select('#playerCounter' + player);
+        counterVal = parseInt(counter.html()) + 1;
         counter.html(counterVal);
       });
     });
