@@ -1,5 +1,5 @@
-// Wstępna wersja bazująca na stream.io chacie i przykładach z twitter-stream-channels
-// wersje testowe bazuja na strumieniu z pliku
+// Wersja testowa bazuje na strumieniu z pliku
+
 "use strict";
 var express = require('express')
 var app = express();
@@ -32,7 +32,7 @@ function startStream(keywords) {
   var credentials = require('./my.twitter.credentials.json');
   var tweetsMock = require('./node_modules/twitter-stream-channels/mocks/data/tweets.json');
 
-  var timeout = 6000; // po tym czasie przerywamy streamowanie
+  var timeout = 12000; // po tym czasie przerywamy streamowanie
   var connectInterval = 10000; // czas do odczekania do ponownej próby połączenia
 
   var client = new TwitterStreamChannels(credentials); // potrzebne później przy łączeniu do twitter stream api
@@ -52,8 +52,6 @@ function startStream(keywords) {
   handleHits(stream);
 
 // po określonym czasie zamykamy stream - absolutne maximum to 15m, ale na potrzeby gry to max 1 minuta
-
-
   setTimeout(function () {
       onTimeout(stream, keywords)}, 
     timeout);

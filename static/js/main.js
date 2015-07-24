@@ -1,37 +1,36 @@
 "use strict";
+  var w = $( window ).width(),
+      h = $( window ).height(),
+      color = d3.scale.category10(),
+      socket = io();
+
 $(document).ready(function() {
   // game setup:
-  var maxPlayers     = 6; // max no of players
-  var wrapper         = $(".input_fields_wrap"); //Fields wrapper
-  var addButton      = $(".add_player_button"); //Add button ID
-  
-  var x = 1; //initial player count
+  var canvas = {};
+  handleNewPlayerButtons();
 
-  $(addButton).click(function(e){ //on add input button click
-      e.preventDefault();
-      if(x < maxPlayers){ 
-          x++; //text box increment
-          $(wrapper).append('<div class="form-group">' + 
-            '<input type="text" class="form-control" ' + 
-            'placeholder="player' + x +
-            '"/><a href="#"' + 
-            'class="remove_field">Remove</a></div>'); //add input box
-      }
-  });
-  
-  $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
-      e.preventDefault(); $(this).parent('div').remove(); x--;
-  })
+  var svg = appendSvg();
+
+  // sluchamy kanalu scorers i dodajemy punkty graczom
+  socket.on('scorers', function(msg){
+    Array.prototype.forEach.call(msg, function(player)
+      {
+        appendNode(svg, canvas['nodes'], canvas['force'], player);
+        var counter = d3.select('#playerCounter' + player);
+        var counterVal = parseInt(counter.html()) + 1;
+        counter.html(counterVal);
+      });
+    });
 
   $('#playerSetup').modal({ backdrop: 'static', keyboard: false});
   $('#chart').hide();
 
-  $('#setupGame').click(function(e) {
+  $('#startGame').click(function(e) {
     e.preventDefault();
-    var isReady = true; // if all the fields went through validation
-    var playerKeys = []; // array for players
+    var isReady = true; // flaga walidacji
+    var playerKeys = []; // array graczy
 
-    $( ".form-group" ).removeClass( "has-success has-error") // validator display reset
+    $( ".form-group" ).removeClass( "has-success has-error") // resetuje nadane css klasy przez walidator
 
     $('.form-control').each(function (i) {
       var key = $(this).val();
@@ -51,58 +50,17 @@ $(document).ready(function() {
       $('#playerSetup').modal('hide');
       $('#chart').show();
       var playersCount = playerKeys.length;
-      canvas = draw(svg, playersCount);
+      canvas = draw(svg, playersCount, w, h);
       socket.emit('start stream', playerKeys);
 
-      // Dodajemy text do svg
-      var text = svg.selectAll("text")
-                            .data(playerKeys)
-                            .enter()
-                            .append("text");
-
-      // Wypełniamy trescia
-      var textLabels = text
-                     .attr("x", w - 200)
-                     .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
-                     // .text( function (d) {return 'Player' + (playerKeys.indexOf(d) + 1 + ' ' + d + ': ')} )
-                     // .text( function (d) { return d + ': 0'} )
-                     .text( function (d) {return '0'} )
-                     .attr("font-family", "sans-serif")
-                     .attr("font-size", "20px")
-                     .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
-                     .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
+      addCounters(svg, playerKeys);
     };
   });
 
 });
 
-var w = $( window ).width(),
-    h = $( window ).height(),
-    color = d3.scale.category10();
 
-var svg = d3.select("#chart").append("svg:svg")
-    .attr("width", w)
-    .attr("height", h);
-
-svg.append("svg:rect")
-    .attr("width", w)
-    .attr("height", h);
-
-var canvas;
-var socket = io();
-
-// sluchamy kanalu scorers i dodajemy punkty graczom
-socket.on('scorers', function(msg){
-  Array.prototype.forEach.call(msg, function(player)
-    {
-      appendNode(svg, canvas['nodes'], canvas['force'], player);
-      var counter = d3.select('#playerCounter' + player);
-      var counterVal = parseInt(counter.html()) + 1;
-      counter.html(counterVal);
-    });
-  });
-
-function draw(svg, playersCount) {
+function draw(svg, playersCount, w, h) {
   var force = d3.layout.force()
       .gravity(0)
       .charge(-3)
@@ -168,3 +126,58 @@ function appendNode(svg, nodes, force, playerIdx) {
 function fill(d) {
   return color(d.type);
 }
+
+function addCounters(svg, playerKeys) {
+  // Dodajemy text do svg
+  var text = svg.selectAll("text")
+                        .data(playerKeys)
+                        .enter()
+                        .append("text");
+
+  // Wypełniamy trescia
+  var textLabels = text
+                 .attr("x", w - 200)
+                 .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
+                 // .text( function (d) {return 'Player' + (playerKeys.indexOf(d) + 1 + ' ' + d + ': ')} )
+                 // .text( function (d) { return d + ': 0'} )
+                 .text( function (d) {return '0'} )
+                 .attr("font-family", "sans-serif")
+                 .attr("font-size", "20px")
+                 .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
+                 .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
+}
+
+function appendSvg() {
+  var svg = d3.select("#chart").append("svg:svg")
+      .attr("width", w)
+      .attr("height", h);
+
+  svg.append("svg:rect")
+      .attr("width", w)
+      .attr("height", h);
+  return svg;
+}
+
+function handleNewPlayerButtons() {
+  var maxPlayers     = 6; // max no of players
+  var wrapper         = $(".input_fields_wrap"); //Fields wrapper
+  var addButton      = $(".add_player_button"); //Add button ID
+  
+  var x = 1; //initial player count
+
+  $(addButton).click(function(e){ //on add input button click
+      e.preventDefault();
+      if(x < maxPlayers){ 
+          x++; //text box increment
+          $(wrapper).append('<div class="form-group">' + 
+            '<input type="text" class="form-control" ' + 
+            'placeholder="player' + x +
+            '"/><a href="#"' + 
+            'class="remove_field">Remove</a></div>'); //add input box
+      }
+  });
+  
+  $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
+      e.preventDefault(); $(this).parent('div').remove(); x--;
+  })
+};
