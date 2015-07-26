@@ -105,8 +105,6 @@ function appendNode(svg, nodes, force, playerIdx, w, h) {
     .transition()
       .delay(200)
       .attr("r", 4.5)
-      // .each("end", function() { nodes.splice(3, 1); })
-      // .remove();
 
   nodes.push(node);
   force.start();
@@ -150,10 +148,12 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
             counterVal = 0;
         appendNode(svg, canvas['nodes'], canvas['force'], player, w, h);
         counter = d3.select('#playerCounter' + player);
-        counterVal = parseInt(counter.html()) + 1;
-        counter.html(counterVal);
+        counterVal = parseInt(counter.text()) + 1;
+        counter.text(counterVal);
       });
     });
+  socket.on('timeUp', function() {
+    alert('Koniec czasu');});
   };
 
 function appendSvg(w, h) {

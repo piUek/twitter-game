@@ -103,7 +103,7 @@ function handleTwitterConnectionStatus(stream, keywords)
   function handleHits(stream) {
     stream.on('channels',function(tweet){
       if (Object.keys(tweet.$channels).length > 0) { // sprawdzam, czy tweet pasuje do ktoregos z kanalow
-        var scorersArray = Object.keys(tweet.$channels); // liczba graczy, ktorzy uzyskali punkt za danego tweeta
+        var scorersArray = Object.keys(tweet.$channels); // tablica graczy, ktorzy uzyskali punkt za danego tweeta
 //         console.log(tweet.text);
         io.emit('scorers', scorersArray);
       };
@@ -113,5 +113,6 @@ function handleTwitterConnectionStatus(stream, keywords)
   function onTimeout(stream, keywords) {
     stream.stop();
     console.log('> twitter : strumień zatrzymany');
-    io.emit('twit message', 'Przestałem nasłuchiwać dla słów: ' + keywords);
+    // io.emit('twit message', 'Przestałem nasłuchiwać dla słów: ' + keywords);
+    io.emit('timeUp');
   }
