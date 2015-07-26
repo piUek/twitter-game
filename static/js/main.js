@@ -30,7 +30,6 @@ $(document).ready(function() {
       handleIncStream(socket, svg, canvas, w, h, playerKeys); // sluchamy kanalu scorers i dodajemy punkty graczom
     };
   });
-
 });
 
 function getX(degrees, r, x) {
@@ -65,7 +64,8 @@ function draw(svg, playersCount, w, h) {
 
   svg.selectAll("circle")
       .data(nodes)
-      .enter().append("svg:circle")
+      .enter()
+      .append("svg:circle")
       .attr("r", 10)
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
@@ -101,6 +101,7 @@ function appendNode(svg, nodes, force, playerIdx, w, h) {
       .attr("cy", function(d) { return d.y; })
       .attr("r", Math.random() * 16 + 4)
       .style("fill", fill)
+      .attr('title', 'ble')
     .transition()
       .delay(200)
       .attr("r", 4.5)
@@ -117,21 +118,27 @@ function fill(d) {
 
 function addCounters(svg, playerKeys, w, h) {
   // Dodajemy text do svg
-  var text = svg.selectAll("text")
+  var counters = svg.selectAll("text")
                         .data(playerKeys)
                         .enter()
-                        .append("text");
+                        .append("text")
+                        .attr("x", w - 300)
+                        .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
+                        .text( 0 )
+                        .attr("font-size", "24px")
+                        .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
+                        .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });
 
-  // Wypełniamy trescia
-  var textLabels = text
-                 .attr("x", w - 200)
-                 .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
-                 // .text( function (d) {return 'Player' + (playerKeys.indexOf(d) + 1 + ' ' + d + ': ')} )
-                 // .text( function (d) { return d + ': 0'} )
-                 .text( 0 )
-                 .attr("font-size", "24px")
-                 .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
-                 .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });;
+  var labels = svg.selectAll("textLabels")
+                        .data(playerKeys)
+                        .enter()
+                        .append("text")
+                        .attr("x", w - 240)
+                        .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
+                        .text( function (d) { return d } )
+                        .attr("font-size", "24px")
+                        .attr("fill", function (d) {return color(playerKeys.indexOf(d))});
+
 }
 
 function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
@@ -154,9 +161,17 @@ function appendSvg(w, h) {
       .attr("width", w)
       .attr("height", h);
 
-  svg.append("svg:rect")
-      .attr("width", w)
-      .attr("height", h);
+  // svg.append("svg:ellipse")
+  //   .attr('rx', 350)
+  //   .attr('ry', 350)
+  //   .attr('cx', w/2)
+  //   .attr('cy', h/2)
+  //   .style('fill', 'black')
+
+  // svg.append("svg:rect")
+  //     .attr("width", w)
+  //     .attr("height", h);
+
   return svg;
 }
 
@@ -181,11 +196,11 @@ function validateFields(playerKeys) {
 }
 
 function handleNewPlayerButtons() {
-  var maxPlayers     = 6; // max no of players
+  var maxPlayers     = 6; // maksymalna liczba graczy
   var wrapper        = $(".input_fields_wrap"); // opakowanie pol z inputem (ulatwia pozniejsze usuwanie)
   var addButton      = $("#add_player_button"); // uchwyt do przycisku dodawania nowych graczy
   
-  var x = 1; //initial player count
+  var x = 1; //początkowa liczba graczy
 
   $(addButton).click(function(e){ //obsluga guzika dodaj graczy
       e.preventDefault();

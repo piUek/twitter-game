@@ -1,6 +1,6 @@
 {
   "name": "twitter-game",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Twitter Game",
   "main": "index.js",
   "author": "Pawel Pilkowski",
