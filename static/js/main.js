@@ -1,5 +1,6 @@
 "use strict";
 var color = d3.scale.category10();
+var scores = []; //docelowo lepiej liczyc to po stronie serwera, ale ma to sens dopiero po zaimplementowaniu identyfikacji klienta 
 
 $(document).ready(function() {
   // game setup:
@@ -26,11 +27,21 @@ $(document).ready(function() {
       $('#chart').show();
 
       canvas = draw(svg, playersCount, w, h);
-      addCounters(svg, playerKeys, w, h); // dodajemy liczniki      
+      addCounters(svg, playerKeys, w, h); // dodajemy liczniki
+      scores = buildScoresArray(playersCount);
       handleIncStream(socket, svg, canvas, w, h, playerKeys); // sluchamy kanalu scorers i dodajemy punkty graczom
     };
   });
 });
+
+function buildScoresArray(playersCount) {
+  var i = 0;
+  var scoresArray = [];
+  for (i = 0; i < playersCount; i++) {
+    scoresArray.push(0);
+  };
+  return scoresArray;
+}
 
 function getX(degrees, r, x) {
   return x + r  * Math.cos(getRad(degrees));
@@ -150,11 +161,50 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
         counter = d3.select('#playerCounter' + player);
         counterVal = parseInt(counter.text()) + 1;
         counter.text(counterVal);
+        scores[player]++;
       });
     });
-  socket.on('timeUp', function() {
-    alert('Koniec czasu');});
+  socket.on('timeUp', function () {
+    handleWinners(svg, w, h);
+  });
   };
+
+function handleWinners(svg, w, h) {
+  var winners = determineWinners();
+  var winnerString = 'Player' + winners[0] + ' is the Winner! Congratulations.';
+  if (winners.length > 1 ) {
+    winnerString = 'Player' + winners.join(', Player') + ' are the Winners! Congratulations.'
+  };
+
+  svg.append("text")
+                .attr("x", w/2)
+                .attr("y", h/2)
+                .attr("text-anchor", "middle")
+                .text(winnerString)
+                .attr("font-size", "36px")
+                .attr("fill", "#FFF")
+                .transition()
+                  .delay(1000)
+                  .attr("fill", "#000");
+
+  console.log(winnerString);
+}
+
+function determineWinners() {
+  var winners = [],
+      max = 0,
+      i = 0,
+      playerCount = scores.length;
+
+  max = Math.max.apply(null, scores); // maxymalna wartosc z tablicy
+
+  for (i = 0; i < playerCount; i++) {
+    if (scores[i] === max) {
+      winners.push(i+1);
+    }; // na wypadek, gdyby bylo wiecej zwyciezcow
+  };
+  return winners;
+}
 
 function appendSvg(w, h) {
   var svg = d3.select("#chart").append("svg:svg")
