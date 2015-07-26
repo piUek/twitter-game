@@ -1,6 +1,8 @@
 "use strict";
-var color = d3.scale.category10();
-var scores = []; //docelowo lepiej liczyc to po stronie serwera, ale ma to sens dopiero po zaimplementowaniu identyfikacji klienta 
+$.tweetGame = { 
+    color: d3.scale.category10(),
+    scores : [] 
+}; //docelowo lepiej liczyc to po stronie serwera, ale ma to sens dopiero po zaimplementowaniu identyfikacji klienta 
 
 $(document).ready(function() {
   // game setup:
@@ -28,13 +30,13 @@ $(document).ready(function() {
 
       canvas = draw(svg, playersCount, w, h);
       addCounters(svg, playerKeys, w, h); // dodajemy liczniki
-      scores = buildScoresArray(playersCount);
+      $.tweetGame.scores = buildscoresArray(playersCount);
       handleIncStream(socket, svg, canvas, w, h, playerKeys); // sluchamy kanalu scorers i dodajemy punkty graczom
     };
   });
 });
 
-function buildScoresArray(playersCount) {
+function buildscoresArray(playersCount) {
   var i = 0;
   var scoresArray = [];
   for (i = 0; i < playersCount; i++) {
@@ -58,8 +60,8 @@ function getRad(degrees) {
 
 function draw(svg, playersCount, w, h) {
   var force = d3.layout.force()
-        .gravity(0)
-        .charge(-3)
+        .gravity(.01)
+        .charge(-5)
         .size([w, h]),
       nodes = force.nodes(),
       i = 0,
@@ -112,7 +114,6 @@ function appendNode(svg, nodes, force, playerIdx, w, h) {
       .attr("cy", function(d) { return d.y; })
       .attr("r", Math.random() * 16 + 4)
       .style("fill", fill)
-      .attr('title', 'ble')
     .transition()
       .delay(200)
       .attr("r", 4.5)
@@ -122,7 +123,7 @@ function appendNode(svg, nodes, force, playerIdx, w, h) {
 };
 
 function fill(d) {
-  return color(d.type);
+  return $.tweetGame.color(d.type);
 }
 
 function addCounters(svg, playerKeys, w, h) {
@@ -135,7 +136,7 @@ function addCounters(svg, playerKeys, w, h) {
                         .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
                         .text( 0 )
                         .attr("font-size", "24px")
-                        .attr("fill", function (d) {return color(playerKeys.indexOf(d))})
+                        .attr("fill", function (d) {return $.tweetGame.color(playerKeys.indexOf(d))})
                         .attr("id", function (d) { return 'playerCounter' + playerKeys.indexOf(d) });
 
   var labels = svg.selectAll("textLabels")
@@ -146,8 +147,7 @@ function addCounters(svg, playerKeys, w, h) {
                         .attr("y", function (d) { return 100 + playerKeys.indexOf(d) * 30 } )
                         .text( function (d) { return d } )
                         .attr("font-size", "24px")
-                        .attr("fill", function (d) {return color(playerKeys.indexOf(d))});
-
+                        .attr("fill", function (d) {return $.tweetGame.color(playerKeys.indexOf(d))});
 }
 
 function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
@@ -161,7 +161,7 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
         counter = d3.select('#playerCounter' + player);
         counterVal = parseInt(counter.text()) + 1;
         counter.text(counterVal);
-        scores[player]++;
+        $.tweetGame.scores[player]++;
       });
     });
   socket.on('timeUp', function () {
@@ -170,9 +170,12 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
   };
 
 function handleWinners(svg, w, h) {
-  var winners = determineWinners();
-  var winnerString = 'Player' + winners[0] + ' is the Winner! Congratulations.';
-  if (winners.length > 1 ) {
+  var winners = determineWinners(),
+      i = 0,
+      winnerString = 'Player' + winners[0] + ' is the Winner! Congratulations.',
+      winnersCount = winners.length;
+
+  if (winnersCount > 1 ) {
     winnerString = 'Player' + winners.join(', Player') + ' are the Winners! Congratulations.'
   };
 
@@ -187,19 +190,20 @@ function handleWinners(svg, w, h) {
                   .delay(1000)
                   .attr("fill", "#000");
 
-  console.log(winnerString);
+  var circles = d3.selectAll('circle').filter(function (d) { return d.type != winners[0]-1 && d.type != winners[1]-1 && d.type != winners[2]-1 && d.type != winners[3]-1 && d.type != winners[4]-1 && d.type != winners[5]-1});
+  circles.transition().delay(3000).style('fill', '#AAA');
 }
 
 function determineWinners() {
   var winners = [],
       max = 0,
       i = 0,
-      playerCount = scores.length;
+      playerCount = $.tweetGame.scores.length;
 
-  max = Math.max.apply(null, scores); // maxymalna wartosc z tablicy
+  max = Math.max.apply(null, $.tweetGame.scores); // maxymalna wartosc z tablicy
 
   for (i = 0; i < playerCount; i++) {
-    if (scores[i] === max) {
+    if ($.tweetGame.scores[i] === max) {
       winners.push(i+1);
     }; // na wypadek, gdyby bylo wiecej zwyciezcow
   };
