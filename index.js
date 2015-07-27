@@ -28,7 +28,7 @@ listenForStartEvent();
 
 // funkcja obsługująca komunikacje z twitterem
 function startStream(keywords) {
-  var TwitterStreamChannels = require('twitter-stream-channels').getMockedClass();
+  var TwitterStreamChannels = require('twitter-stream-channels');
   var credentials = require('./my.twitter.credentials.json');
   var tweetsMock = require('./node_modules/twitter-stream-channels/mocks/data/tweets.json');
 
