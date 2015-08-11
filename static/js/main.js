@@ -236,7 +236,7 @@ function validateFields(playerKeys) {
   $('.form-control').each(function (i) {
     var key = $(this).val();
 
-    if (key == "") {
+    if (key === "") {
       isReady = false;
       $(this).attr('placeholder', 'Please fill this field'); 
       $(this).parent().addClass('has-error');

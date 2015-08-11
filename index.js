@@ -1,7 +1,7 @@
 // Wersja testowa bazuje na strumieniu z pliku
 
 "use strict";
-var express = require('express')
+var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -10,15 +10,15 @@ var i;
 // konfiguracja serwera http + route do index.html
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
-}); 
+});
 
 //serwowanie plików statycznych
-app.use('/static', express.static('static')); 
+app.use('/static', express.static('static'));
 
 // start serwera
 http.listen(3001, function(){
   console.log('> status : nasłuchuje na porcie *:3001');
-}); 
+});
 
 // komunikaty z socketów o połączeniu/rozłączeniu użytkownika
 connectionStatusMessages();
@@ -37,9 +37,9 @@ function startStream(keywords) {
 
   var client = new TwitterStreamChannels(credentials); // potrzebne później przy łączeniu do twitter stream api
 
-  var channels = {}
+  var channels = {};
   var keyCount = keywords.length;
-  for (i=0; i < keyCount; i++) {
+  for (i=0; i < keyCount; i+=1) {
     channels[i] = keywords[i];
   }
 
@@ -53,9 +53,9 @@ function startStream(keywords) {
 
 // po określonym czasie zamykamy stream - absolutne maximum to 15m, ale na potrzeby gry to max 1 minuta
   setTimeout(function () {
-      onTimeout(stream, keywords)}, 
+      onTimeout(stream, keywords);},
     timeout);
-};
+}
 
 function connectionStatusMessages() {
   io.on('connection', function(socket){
@@ -64,7 +64,7 @@ function connectionStatusMessages() {
       console.log('> status : użytkownik rozłączony');
     });
   });
-};
+}
 
 function listenForStartEvent() {
   io.on('connection', function(socket){
@@ -73,7 +73,7 @@ function listenForStartEvent() {
       startStream(keywords);
     });
   });
-};
+}
 
 function handleTwitterConnectionStatus(stream, keywords)
 {
@@ -98,7 +98,7 @@ function handleTwitterConnectionStatus(stream, keywords)
     stream.on('reconnect', function (request, response, connectInterval) {
       console.log('> twitter : czekam na ponowne połączenie '+connectInterval+'ms');
     });
-};
+}
 
   function handleHits(stream) {
     stream.on('channels',function(tweet){
@@ -108,7 +108,7 @@ function handleTwitterConnectionStatus(stream, keywords)
         io.emit('scorers', scorersArray);
       };
     });
-  };
+  }
 
   function onTimeout(stream, keywords) {
     stream.stop();
