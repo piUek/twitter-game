@@ -197,7 +197,7 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
       var counter = {},
         counterVal = 0;
       appendNode(svg, canvas['nodes'], canvas['force'], player, w, h);
-      showTweet(svg, w, h, player, msg.tweetText)
+      showTweet(player, msg.tweetText)
       counter = d3.select('#playerCounter' + player);
       counterVal = parseInt(counter.text()) + 1;
       counter.text(counterVal);
@@ -209,19 +209,9 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
   });
 };
 
-function showTweet(svg, w, h, player, tweet) {
-    // console.log(player, tweet);
-    svg.append("text")
-      .attr("x", w / 2)
-      .attr("y", h / 2)
-      .attr("text-anchor", "middle")
-      .text(tweet)
-      .attr("font-size", "24px")
-      .attr("fill", $.tweetGame.color(+player))
-      .transition()
-      .delay(800)
-      .attr('opacity', 0)
-      .remove();
+function showTweet(player, tweet) {
+    console.log($.tweetGame.color(+player));
+    $('#text_box').prepend('<p style="color:' + $.tweetGame.color(+player) + ';">' + tweet + '</p>')
 }
 
 function handleWinners(svg, w, h) {
