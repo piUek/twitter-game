@@ -210,23 +210,23 @@ function handleIncStream(socket, svg, canvas, w, h, playerKeys) {
 };
 
 function showTweet(player, tweet) {
-    console.log($.tweetGame.color(+player));
-    $('#text_box').prepend('<p style="color:' + $.tweetGame.color(+player) + ';">' + tweet + '</p>')
+    var item = $('<p style="color:' + $.tweetGame.color(+player) + ';">' + tweet + '</p>').hide().fadeIn();
+    $('#text_box').prepend(item)
 }
 
 function handleWinners(svg, w, h) {
   var winners = determineWinners(),
     i = 0,
-    winnerString = 'Player ' + winners[0] + ' is the Winner! Congratulations.',
+    winnerString = 'Player ' + winners[0] + ' is the Winner!',
     winnersCount = winners.length;
 
   if (winnersCount > 1) {
-    winnerString = 'Player ' + winners.join(', Player') + ' are the Winners! Congratulations.'
+    winnerString = 'Player ' + winners.join(', Player') + ' are the Winners!'
   };
 
   svg.append("text")
     .attr("x", w / 2)
-    .attr("y", h / 2)
+    .attr("y", h / 2 - 18)
     .attr("text-anchor", "middle")
     .text(winnerString)
     .attr("font-size", "36px")
@@ -234,6 +234,17 @@ function handleWinners(svg, w, h) {
     .transition()
     .delay(1000)
     .attr("fill", "#000");
+
+    svg.append("text")
+      .attr("x", w / 2)
+      .attr("y", h / 2 + 18)
+      .attr("text-anchor", "middle")
+      .text('Congratulations.')
+      .attr("font-size", "36px")
+      .attr("fill", "#FFF")
+      .transition()
+      .delay(1000)
+      .attr("fill", "#000");
 
   var circles = d3.selectAll('circle').filter(function(d) {
     return d.type != winners[0] - 1 && d.type != winners[1] - 1 && d.type != winners[2] - 1 && d.type != winners[3] - 1 && d.type != winners[4] - 1 && d.type != winners[5] - 1
